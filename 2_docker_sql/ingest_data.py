@@ -8,7 +8,8 @@ from sqlalchemy import create_engine
 import psycopg2
 from time import time
 
-df = pd.read_csv('/home/lpop22/LKzoomcamp2025/2_docker_sql/yellow_tripdata_2021-01.csv.gz', nrows=100)
+# previous file path
+# df = pd.read_csv('/home/lpop22/LKzoomcamp2025/2_docker_sql/yellow_tripdata_2021-01.csv.gz', nrows=100)
 
 def main(params):
     user = params.user
@@ -30,7 +31,7 @@ def main(params):
 
     engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{db}')
 
-    df_iter = pd.read_csv(csv_name, iterator=True, chunksize=100000)
+    df_iter = pd.read_csv(csv_name, iterator=True, chunksize=100000, compression='gzip')
 
     df = next(df_iter)
 
