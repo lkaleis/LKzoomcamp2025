@@ -8,9 +8,6 @@ from sqlalchemy import create_engine
 import psycopg2
 from time import time
 
-# previous file path
-# df = pd.read_csv('/home/lpop22/LKzoomcamp2025/2_docker_sql/yellow_tripdata_2021-01.csv.gz', nrows=100)
-
 def main(params):
     user = params.user
     password = params.password
