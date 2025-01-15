@@ -15,7 +15,7 @@ ny_taxi_postgres_data/
 *.csv.gz
 
 .myenv
-**/.myenv/*
+myenv/
 
 # Local .terraform directories
 **/.terraform/*
