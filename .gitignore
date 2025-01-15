@@ -12,9 +12,10 @@ data/
 .ipynb_checkpoints/
 ny_taxi_postgres_data/
 *.csv
+*.csv.gz
 
 .myenv
-myenv/
+**/.myenv/*
 
 # Local .terraform directories
 **/.terraform/*
