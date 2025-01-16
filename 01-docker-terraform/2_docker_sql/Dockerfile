@@ -5,6 +5,6 @@ RUN pip install pandas sqlalchemy psycopg2
 
 WORKDIR /app
 
-COPY ingest_data.py ingest_data.py
+COPY ingest_multiple_datasets.py ingest_multiple_datasets.py
 
-ENTRYPOINT [ "python", "ingest_data.py" ]
+ENTRYPOINT [ "python", "ingest_multiple_datasets.py" ]
