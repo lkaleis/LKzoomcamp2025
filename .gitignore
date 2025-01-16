@@ -5,6 +5,7 @@ __pycache__/
 
 # Ignore data folder
 data/
+data_pgadmin/
 
 # Ignore environment files
 .env

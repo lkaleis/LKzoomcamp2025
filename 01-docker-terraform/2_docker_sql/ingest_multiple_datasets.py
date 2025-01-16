@@ -28,6 +28,12 @@ def ingest_data(user, password, host, port, db, table_name, url):
     if 'tpep_dropoff_datetime' in df.columns:
         df.tpep_dropoff_datetime = pd.to_datetime(df.tpep_dropoff_datetime)
 
+        # For datetime columns (if they exist), convert them
+    if 'lpep_pickup_datetime' in df.columns:
+        df.lpep_pickup_datetime = pd.to_datetime(df.lpep_pickup_datetime)
+    if 'lpep_dropoff_datetime' in df.columns:
+        df.lpep_dropoff_datetime = pd.to_datetime(df.lpep_dropoff_datetime)
+
     # Convert the dataframe to SQL
     df.head(0).to_sql(name=table_name, con=engine, if_exists='replace')  # Create the table structure
     df.to_sql(name=table_name, con=engine, if_exists='append')  # Insert data

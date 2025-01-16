@@ -114,6 +114,20 @@ Answers:
 - 104,793;  202,661;  109,603;  27,678;  35,189
 - 104,838;  199,013;  109,645;  27,688;  35,202
 
+**Answer:** 104,802;  198,924;  109,603;  27,678;  35,189
+
+```sql
+SELECT 
+    COUNT(CASE WHEN trip_distance <= 1 THEN 1 END) AS under_1_mile,
+    COUNT(CASE WHEN trip_distance > 1 AND trip_distance <= 3 THEN 1 END) AS between_1_and_3_miles,
+    COUNT(CASE WHEN trip_distance > 3 AND trip_distance <= 7 THEN 1 END) AS between_3_and_7_miles,
+    COUNT(CASE WHEN trip_distance > 7 AND trip_distance <= 10 THEN 1 END) AS between_7_and_10_miles,
+    COUNT(CASE WHEN trip_distance > 10 THEN 1 END) AS over_10_miles
+FROM green_taxi_trips
+WHERE lpep_dropoff_datetime >= '2019-10-01 00:00:00' 
+  AND lpep_dropoff_datetime < '2019-11-01 00:00:00';
+```
+
 
 ## Question 4. Longest trip for each day
 
@@ -127,6 +141,15 @@ Tip: For every day, we only care about one single trip with the longest distance
 - 2019-10-26
 - 2019-10-31
 
+**Answer:** 2019-10-31
+
+```sql
+select * from (
+select DATE(lpep_pickup_datetime) as date, max(trip_distance)
+from green_taxi_trips
+group by DATE(lpep_pickup_datetime)) as tbl1
+where tbl1.date in ('2019-10-11', '2019-10-24', '2019-10-26', '2019-10-31')
+```
 
 ## Question 5. Three biggest pickup zones
 
@@ -139,6 +162,18 @@ Consider only `lpep_pickup_datetime` when filtering by date.
 - East Harlem North, Morningside Heights
 - Morningside Heights, Astoria Park, East Harlem South
 - Bedford, East Harlem North, Astoria Park
+
+**Answer:** East Harlem North, East Harlem South, Morningside Heights
+
+```sql
+select * from (
+select z."Zone", sum(gt."total_amount") as total_amt 
+from green_taxi_trips gt
+join zones z on gt."PULocationID" = z."LocationID"
+where date(gt."lpep_pickup_datetime") = '2019-10-18'
+group by z."Zone") f where f."total_amt">13000
+order by f."total_amt" desc
+```
 
 
 ## Question 6. Largest tip
@@ -155,6 +190,28 @@ We need the name of the zone, not the ID.
 - JFK Airport
 - East Harlem North
 - East Harlem South
+
+**Answer:** JFK Airport
+
+```sql
+select * from (
+select 
+	zpu."Zone" as "pickup_loc",
+	zdo."Zone" as "dropoff_loc",
+	max(gt."tip_amount") as tip_amt -- the largest tip not total tip per zone
+from
+	green_taxi_trips gt, 
+	zones zpu, 
+	zones zdo
+where 
+	gt."PULocationID"=zpu."LocationID" AND
+	gt."DOLocationID" = zdo."LocationID" AND
+	gt."lpep_pickup_datetime" >= '2019-10-01 00:00:00' AND 
+	gt."lpep_pickup_datetime" < '2019-11-01 00:00:00' AND 
+	zpu."Zone" = 'East Harlem North'
+group by zdo."Zone", zpu."Zone") f 
+order by f."tip_amt" desc
+```
 
 
 ## Terraform
@@ -181,6 +238,9 @@ Answers:
 - terraform init, terraform run -auto-aprove, terraform destroy
 - terraform init, terraform apply -auto-aprove, terraform destroy
 - terraform import, terraform apply -y, terraform rm
+
+**Answer:** terraform init, terraform apply -auto-approve, terraform destroy
+This is because terraform apply -auto-approve generates and executes the plan w/o manual approval.
 
 
 ## Submitting the solutions

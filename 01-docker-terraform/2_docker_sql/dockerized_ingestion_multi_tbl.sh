@@ -6,7 +6,7 @@ export URL2="https://github.com/DataTalksClub/nyc-tlc-data/releases/download/gre
 export URL3="https://github.com/DataTalksClub/nyc-tlc-data/releases/download/misc/taxi_zone_lookup.csv"
 
 
-docker build -t taxi_ingest:v002 .
+docker build -t taxi_ingest:v003 .
 
 docker run -it \
     --network=pg-network \
