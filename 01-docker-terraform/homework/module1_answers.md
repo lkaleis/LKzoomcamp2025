@@ -97,6 +97,8 @@ Download this data and put it into Postgres.
 You can use the code from the course. It's up to you whether
 you want to use Jupyter or a python script.
 
+**Answer:** Check dockerized_ingestion_multi_tbl.sh shell commands, ingest_multiple_datasets.py script. These were adjusted to bring in 3 different csvs into 3 new tables in postgres. Docker-compose.yml file is also run to spin up pgadmin + postgres db.
+
 ## Question 3. Trip Segmentation Count
 
 During the period of October 1st 2019 (inclusive) and November 1st 2019 (exclusive), how many trips, **respectively**, happened:
@@ -239,8 +241,7 @@ Answers:
 - terraform init, terraform apply -auto-aprove, terraform destroy
 - terraform import, terraform apply -y, terraform rm
 
-**Answer:** terraform init, terraform apply -auto-approve, terraform destroy
-This is because terraform apply -auto-approve generates and executes the plan w/o manual approval.
+**Answer:** terraform init, terraform apply -auto-approve, terraform destroy. This is because terraform apply -auto-approve generates and executes the plan w/o manual approval.
 
 
 ## Submitting the solutions
