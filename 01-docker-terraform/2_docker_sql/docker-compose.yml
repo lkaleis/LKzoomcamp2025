@@ -14,6 +14,8 @@ services:
       - "pg-network"
   pgadmin:
     image: dpage/pgadmin4
+    volumes:
+      - "/home/lpop22/LKzoomcamp2025/data_pgadmin:/var/lib/pgadmin"
     environment:
       - PGADMIN_DEFAULT_EMAIL=admin@admin.com
       - PGADMIN_DEFAULT_PASSWORD=root
