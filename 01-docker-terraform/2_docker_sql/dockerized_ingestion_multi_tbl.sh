@@ -10,7 +10,7 @@ docker build -t taxi_ingest:v003 .
 
 docker run -it \
     --network=pg-network \
-    taxi_ingest:v002 \
+    taxi_ingest:v003 \
     --user=root \
     --password=root \
     --host=pgdatabase \
