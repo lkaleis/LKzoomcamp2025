@@ -41,7 +41,7 @@ Question 1: What is count of records for the 2024 Yellow Taxi Data?
 select count(*) from dezoomcamp.yellow_trips2024_reg
 ```
 
-**Answer: ** 20,332,093 based on query or check storage info in details of table.
+**Answer:** 20,332,093 based on query or check storage info in details of table.
 
 ## Question 2:
 Write a query to count the distinct number of PULocationIDs for the entire dataset on both the tables.</br> 
@@ -61,7 +61,7 @@ select count(distinct PULocationID)
 from dezoomcamp.yellow_trips2024_reg;
 ```
 
-**Answer: ** 0 MB for the External Table and 155.12 MB for the Materialized Table
+**Answer:** 0 MB for the External Table and 155.12 MB for the Materialized Table
 
 ## Question 3:
 Write a query to retrieve the PULocationID from the table (not the external table) in BigQuery. Now write a query to retrieve the PULocationID and DOLocationID on the same table. Why are the estimated number of Bytes different?
@@ -80,7 +80,7 @@ select PULocationID, DOLocationID
 from dezoomcamp.yellow_trips2024_reg;
 ```
 
-**Answer: ** BigQuery is a columnar database, and it only scans the specific columns requested in the query. Querying two columns (PULocationID, DOLocationID) requires 
+**Answer:** BigQuery is a columnar database, and it only scans the specific columns requested in the query. Querying two columns (PULocationID, DOLocationID) requires 
 reading more data than querying one column (PULocationID), leading to a higher estimated number of bytes processed. It basically doubles the data scanned because you are reading in two columns and bigquery stores data in a columnar format.
 
 ## Question 4:
@@ -96,11 +96,11 @@ from dezoomcamp.yellow_trips2024_reg
 where fare_amount=0;
 ```
 
-**Answer: ** 8333 records. Though there are more records where fare_amount is less than 0.
+**Answer:** 8333 records. Though there are more records where fare_amount is less than 0.
 
 ## Question 5:
 What is the best strategy to make an optimized table in Big Query if your query will always filter based on tpep_dropoff_datetime and order the results by VendorID (Create a new table with this strategy)
-- Partition by tpep_dropoff_datetime and Cluster on VendorID
+- **Partition by tpep_dropoff_datetime and Cluster on VendorID**
 - Cluster on by tpep_dropoff_datetime and Cluster on VendorID
 - Cluster on tpep_dropoff_datetime Partition by VendorID
 - Partition by tpep_dropoff_datetime and Partition by VendorID
@@ -116,7 +116,7 @@ CLUSTER BY VendorID AS (
 
 ```
 
-***Answer: ** Partition by tpep_dropoff_datetime and Cluster on VendorID. Partitioning on tpep_dropoff_datetime because our queries will filter on this column and bigquery will only scan the relevant date partitions. Clustering on VendorID because we are ordering our results by this column and clustering helps to organize data within a partition.
+***Answer:** Partition by tpep_dropoff_datetime and Cluster on VendorID. Partitioning on tpep_dropoff_datetime because our queries will filter on this column and bigquery will only scan the relevant date partitions. Clustering on VendorID because we are ordering our results by this column and clustering helps to organize data within a partition.
 
 
 ## Question 6:
@@ -144,7 +144,7 @@ from dezoomcamp.yellow_trips2024_partitioned
 where tpep_dropoff_datetime>= '2024-03-01' and tpep_dropoff_datetime <='2024-03-15'
 ```
 
-**Answer: ** 310.24 MB for non-partitioned table and 26.84 MB for the partitioned table
+**Answer:** 310.24 MB for non-partitioned table and 26.84 MB for the partitioned table
 
 ## Question 7: 
 Where is the data stored in the External Table you created?
@@ -154,14 +154,14 @@ Where is the data stored in the External Table you created?
 - **GCP Bucket**
 - Big Table
 
-**Answer: ** In the GCP Bucket because when I created an external table, the data is NOT stored inside of BigQuery and instead it's referenced directly from the original location which is the google storage bucket where the parquet files live.
+**Answer:** In the GCP Bucket because when I created an external table, the data is NOT stored inside of BigQuery and instead it's referenced directly from the original location which is the google storage bucket where the parquet files live.
 
 ## Question 8:
 It is best practice in Big Query to always cluster your data:
 - True
 - **False**
 
-**Answer: ** False. Clustering can definitely improve performance but doesn't always make sense to do so. It depends on dataset size, the types of queries you are running, and if the table would be frequently updated (if so then clustering adds maintenance). Usually clustering is good for large datasets, if your queries involve frequent filters/agg/sorts on the same columns (in this case it was VendorID).
+**Answer:** False. Clustering can definitely improve performance but doesn't always make sense to do so. It depends on dataset size, the types of queries you are running, and if the table would be frequently updated (if so then clustering adds maintenance). Usually clustering is good for large datasets, if your queries involve frequent filters/agg/sorts on the same columns (in this case it was VendorID).
 
 
 ## (Bonus: Not worth points) Question 9:
@@ -174,7 +174,7 @@ select count(*)
 from dezoomcamp.yellow_trips2024_reg
 ```
 
-**Answer: ** It's going to read 0 bytes because bigquery was able to work with the data in memory and didn't need to spill any data to the disk. It has a low shuffle output (450 B) so it's a pretty simple query with 0 B shuffle spilled to disk. The query also didn't have any filters/aggregations.
+**Answer:** It's going to read 0 bytes because bigquery was able to work with the data in memory and didn't need to spill any data to the disk. It has a low shuffle output (450 B) so it's a pretty simple query with 0 B shuffle spilled to disk. The query also didn't have any filters/aggregations.
 
 ## Submitting the solutions
 
