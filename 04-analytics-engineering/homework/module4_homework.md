@@ -85,6 +85,7 @@ What would you change to accomplish that in a such way that command line argumen
 - Update the WHERE clause to `pickup_datetime >= CURRENT_DATE - INTERVAL '{{ var("days_back", env_var("DAYS_BACK", "30")) }}' DAY`
 - Update the WHERE clause to `pickup_datetime >= CURRENT_DATE - INTERVAL '{{ env_var("DAYS_BACK", var("days_back", "30")) }}' DAY`
 
+**Answer:** Update the WHERE clause to `pickup_datetime >= CURRENT_DATE - INTERVAL '{{ var("days_back", env_var("DAYS_BACK", "30")) }}' DAY` this would give precedence to --vars (command line args) and if not then to env_var("DAYS_BACK"). if neither exists then defaults to 30 days.
 
 ### Question 3: dbt Data Lineage and Execution
 
@@ -100,6 +101,7 @@ Select the option that does **NOT** apply for materializing `fct_taxi_monthly_zo
 - `dbt run --select +models/core/`
 - `dbt run --select models/staging/+`
 
+**Answer:** `dbt run --select models/staging/+` will run only staging models and their downstream dependencies.
 
 ### Question 4: dbt Macros and Jinja
 
@@ -138,6 +140,7 @@ That all being said, regarding macro above, **select all statements that are tru
 - When using `stg`, it materializes in the dataset defined in `DBT_BIGQUERY_STAGING_DATASET`, or defaults to `DBT_BIGQUERY_TARGET_DATASET`
 - When using `staging`, it materializes in the dataset defined in `DBT_BIGQUERY_STAGING_DATASET`, or defaults to `DBT_BIGQUERY_TARGET_DATASET`
 
+**Answer:** Setting a value for `DBT_BIGQUERY_STAGING_DATASET` env var is mandatory, or it'll fail to compile is false because if this value is not set, it just falls back to DBT_BIGQUERY_TARGET_DATASET.
 
 ## Serious SQL
 
