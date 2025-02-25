@@ -3,8 +3,7 @@ version: 2
 sources:
   - name: staging
     database: "{{ env_var('DBT_DATABASE', 'neon-runway-447221-q8') }}"
-    schema:
-      "{{ env_var('DBT_SCHEMA', 'trips_data_all') }}"
+    schema: "{{ env_var('DBT_SCHEMA', 'trips_data_all') }}"
       # loaded_at_field: record_loaded_at
     tables:
       - name: green_tripdata
