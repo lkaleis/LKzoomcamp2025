@@ -168,6 +168,52 @@ Considering the YoY Growth in 2020, which were the yearly quarters with the best
 - green: {best: 2020/Q1, worst: 2020/Q2}, yellow: {best: 2020/Q1, worst: 2020/Q2}
 - green: {best: 2020/Q1, worst: 2020/Q2}, yellow: {best: 2020/Q3, worst: 2020/Q4}
 
+```sql
+-- dbt sql file
+{{ config(materialized='table') }}
+
+with trips_data as (
+    select * from {{ ref('fact_trips') }}
+),
+
+quarterly_rev AS (
+    
+    select 
+    -- Revenue grouping 
+    EXTRACT(YEAR from pickup_datetime) as year,
+    EXTRACT(QUARTER from pickup_datetime) as quarter,
+    FORMAT('%d-Q%d', EXTRACT(YEAR from pickup_datetime), EXTRACT(QUARTER from pickup_datetime)) as year_quarter,
+    service_type, 
+
+    -- Revenue calculation 
+    sum(total_amount) as revenue_quarterly_total
+
+
+    from trips_data
+    group by year, quarter, year_quarter, service_type
+)
+
+select
+*,
+-- revenue for prev yearly quarter
+lag(revenue_quarterly_total, 1) 
+over 
+(partition by quarter, service_type order by year) as prev_year_quarter_revenue,
+
+-- % change
+SAFE_DIVIDE(
+        revenue_quarterly_total - LAG(revenue_quarterly_total, 1) OVER (
+            PARTITION BY quarter, service_type ORDER BY year
+        ), 
+        LAG(revenue_quarterly_total, 1) OVER (
+            PARTITION BY quarter, service_type ORDER BY year
+        )
+    ) * 100 AS yoy_qoq_percent_change
+from quarterly_rev
+order by service_type, year, quarter
+```
+
+**Answer:** green: {best: 2020/Q1, worst: 2020/Q2}, yellow: {best: 2020/Q1, worst: 2020/Q2}
 
 ### Question 6: P97/P95/P90 Taxi Monthly Fare
 
@@ -183,6 +229,40 @@ Now, what are the values of `p97`, `p95`, `p90` for Green Taxi and Yellow Taxi, 
 - green: {p97: 40.0, p95: 33.0, p90: 24.5}, yellow: {p97: 31.5, p95: 25.5, p90: 19.0}
 - green: {p97: 55.0, p95: 45.0, p90: 26.5}, yellow: {p97: 52.0, p95: 25.5, p90: 19.0}
 
+``` sql
+-- dbt sql file
+{{ config(materialized='table') }}
+
+with trips_data as (
+    select * from {{ ref('fact_trips') }}
+),
+
+filtered_trips as (
+    select 
+    service_type,
+    EXTRACT(year from pickup_datetime) as year,
+    EXTRACT(month from pickup_datetime) as month,
+    fare_amount
+    from trips_data
+    where fare_amount>0
+    and trip_distance>0
+    and payment_type_description in ('Cash', 'Credit card')
+)
+
+select
+    service_type,
+    year,
+    month,
+    APPROX_QUANTILES(fare_amount, 100)[OFFSET(50)] AS median_fare,  -- 50th percentile (median)
+    APPROX_QUANTILES(fare_amount, 100)[OFFSET(90)] AS p90_fare,     -- 90th percentile
+    APPROX_QUANTILES(fare_amount, 100)[OFFSET(95)] AS p95_fare,      -- 95th percentile
+    APPROX_QUANTILES(fare_amount, 100)[OFFSET(97)] AS p97_fare      -- 97th percentile
+FROM filtered_trips
+GROUP BY service_type, year, month
+ORDER BY service_type, year, month
+```
+
+**Answer:** green: {p97: 55.0, p95: 45.0, p90: 26.5}, yellow: {p97: 31.5, p95: 25.5, p90: 19.0}
 
 ### Question 7: Top #Nth longest P90 travel time Location for FHV
 
@@ -204,6 +284,114 @@ For the Trips that **respectively** started from `Newark Airport`, `SoHo`, and `
 - LaGuardia Airport, Rosedale, Bath Beach
 - LaGuardia Airport, Yorkville East, Greenpoint
 
+**staging model stg_fhv_trips.sql**
+
+```sql
+{{
+    config(
+        materialized='view'
+    )
+}}
+
+with fhv_tripdata as 
+(
+  select *
+  from {{ source('staging','fhv_data') }}
+  where dispatching_base_num is not null 
+)
+
+select * 
+from fhv_tripdata
+
+
+-- dbt build --select <model_name> --vars '{'is_test_run': 'false'}'
+{% if var('is_test_run', default=true) %}
+
+  limit 100
+
+{% endif %}
+```
+
+**core model dim_fhv_trips.sql**
+```sql
+{{
+    config(
+        materialized='table'
+    )
+}}
+
+with fhv_data_tripdata as (
+    select *, 
+        'fhv' as service_type
+    from {{ ref('stg_fhv_trips') }}
+),
+
+dim_zones as (
+    select * from {{ ref('dim_zones') }}
+    where borough != 'Unknown'
+)
+
+select 
+    fhv_data_tripdata.*, 
+    EXTRACT(year from pickup_datetime) as pickup_year,
+    EXTRACT(month from pickup_datetime) as pickup_month,
+    pickup_zone.borough as pickup_borough, 
+    pickup_zone.zone as pickup_zone, 
+    dropoff_zone.borough as dropoff_borough, 
+    dropoff_zone.zone as dropoff_zone
+
+from fhv_data_tripdata
+inner join dim_zones as pickup_zone
+on fhv_data_tripdata.PUlocationid = pickup_zone.locationid
+inner join dim_zones as dropoff_zone
+on fhv_data_tripdata.DOlocationid = dropoff_zone.locationid
+```
+
+**core model fct_fhv_monthly_zone_traveltime_p90.sql**
+```sql
+{{ config(materialized='table') }}
+
+with fhv_trips_data as (
+    select 
+        PUlocationid,
+        pickup_year,
+        pickup_month,
+        pickup_borough,
+        pickup_zone,
+        DOlocationid,
+        dropoff_borough,
+        dropoff_zone,
+        TIMESTAMP_DIFF(dropOff_datetime, pickup_datetime, SECOND) as trip_duration
+    from {{ ref('dim_fhv_trips') }}
+)
+
+select 
+    *,
+    PERCENTILE_CONT(trip_duration, 0.90) OVER
+    (PARTITION BY pickup_year, pickup_month, PUlocationid, DOlocationid) AS p90_duration  -- 90th percentile
+from fhv_trips_data
+```
+
+**sql in bigquery to answer question**
+
+```sql
+with ranked_zones as (SELECT 
+        pickup_zone,
+        dropoff_zone,
+        p90_duration,
+        DENSE_RANK() OVER (PARTITION by pickup_zone ORDER BY p90_duration DESC) AS rank
+    FROM neon-runway-447221-q8.trips_data_all.fct_fhv_monthy_zone_traveltime_p90 
+    WHERE pickup_year = 2019 
+      AND pickup_month = 11
+      AND pickup_zone IN ('Newark Airport', 'SoHo', 'Yorkville East')
+)
+SELECT pickup_zone,
+        dropoff_zone, p90_duration, rank
+FROM ranked_zones
+WHERE rank = 2;
+```
+
+**Answer:** LaGuardia Airport, Chinatown, Garment District
 
 ## Submitting the solutions
 
